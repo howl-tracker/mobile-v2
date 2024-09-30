@@ -1,0 +1,7 @@
+schema: "./graphql_schema.graphql"
+generates:
+  types/graphqlTypes.ts:
+    plugins:
+      - "typescript"              # Generates base TypeScript types for schema
+      - "typescript-operations"   # Generates TypeScript types for operations (queries/mutations)
+      - "typescript-resolvers"    # Generates resolvers type for server

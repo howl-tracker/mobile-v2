@@ -5,8 +5,8 @@ import { Text } from "@/components/ui/text";
 import { View } from "@/components/ui/view";
 import { FontAwesome } from "@expo/vector-icons";
 import { gql, useMutation, useLazyQuery, useQuery } from "@apollo/client";
-import { Link } from "expo-router";
-import React, { useState } from "react";
+import { Link, useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
 import { Modal, ModalBackdrop, ModalBody, ModalContent } from "@/components/ui/modal";
 import { Pressable } from "@/components/ui/pressable";
 import { Input, InputField } from "@/components/ui/input";
@@ -46,6 +46,19 @@ query MyQuery {
 }
 `
 
+const GetActiveWorkspace = gql`
+query GetActiveWorkspaceQuery {
+  user {
+    current {
+      currentWorkspace {
+        id
+        name
+      }
+    }
+  }
+}
+`
+
 type Workspace = {
     id: string
     name: string
@@ -56,18 +69,38 @@ export default function WorkspaceSelect() {
     const [createWorkspace, { called: calledCreateWorkspace, loading: loadingCreateWorkspace, error: errCreateWorkspace, data: dataCreateWorkspace }] = useMutation(CreateWorkspace)
     const [selectWorkspace, { called: calledselectWorkspace, loading: loadingselectWorkspace, error: errselectWorkspace, data: dataselectWorkspace }] = useMutation(SelectWorkspace)
     const { called: calledGetWorkspaces, loading: loadingGetWorkspaces, error: errGetWorkspaces, data: dataGetWorkspaces, refetch: refetchGetWorkspaces } = useQuery(GetWorkspaces)
+    const { called: calledActiveWorkspace, loading: loadingActiveWorkspace, error: errActiveWorkspace, data: dataActiveWorkspace, refetch: refetchActiveWorkspace, networkStatus: netStatusActiveWorkspace } = useQuery(GetActiveWorkspace, {
+        notifyOnNetworkStatusChange: true,
+    })
 
     const [showModal, setShowModal] = useState(false)
+
+    useFocusEffect(
+        useCallback(() => {
+            refetchGetWorkspaces()
+
+            return () => {
+            }
+        }, [])
+    )
+
+    let currentWorkspaceId = dataActiveWorkspace.user.current.currentWorkspace.id
 
     return (
         <View className="flex items-center p-4">
             <Text className="m-8 text-2xl font-bold text-black">Select a workspace</Text>
 
-            <View className="m-4 flex items-center gap-2">
+
+            <View className="m-4 flex items-center justify-center gap-4 w-full">
                 {dataGetWorkspaces && dataGetWorkspaces.workspace.all?.map((workspace: Workspace) => {
                     return (
-                        <Button className="bg-slate-500" key={workspace.id} onPress={() => selectWorkspace({ variables: { workspaceId: workspace.id } })}>
+                        <Button className={currentWorkspaceId == workspace.id ? "bg-green-600 w-5/6" : "bg-slate-500 w-5/6"} key={workspace.id} onPress={async () => {
+                            await selectWorkspace({ variables: { workspaceId: workspace.id } })
+                            await refetchActiveWorkspace()
+
+                        }}>
                             <ButtonText key={workspace.id}>{workspace.name}</ButtonText>
+                            {currentWorkspaceId == workspace.id ? <FontAwesome name="check" size={15} color={"white"} className="absolute right-4" /> : ''}
                         </Button>
                     )
                 })}

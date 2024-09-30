@@ -93,8 +93,12 @@ export default function Auth() {
         },
       });
 
-      await createWorkspace({ variables: { name: email + "'s Workspace" } })
-      await selectWorkspace({ variables: { workspaceId: dataCreateWorkspace.workspace.data.id } })
+      await createWorkspace({
+        variables: { name: email + "'s Workspace" },
+        onCompleted(data, clientOptions) {
+          selectWorkspace({ variables: { workspaceId: data.workspace.create.data.id } })
+        },
+      })
 
     } catch (error) {
       console.log("Error: " + error);

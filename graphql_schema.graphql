@@ -1,0 +1,674 @@
+"""Category Type"""
+type Category {
+  id: UUID!
+  name: String!
+  skus: [Sku!]!
+  inventoryItems: [InventoryItem!]!
+}
+
+type CategoryCustomResponse {
+  success: Boolean!
+  message: String!
+  type: String!
+  data: Category
+}
+
+type CategoryMutation {
+  create(name: String!): CategoryCustomResponse!
+  update(id: UUID!, name: String!): CategoryCustomResponse!
+  delete(id: UUID!): CategoryCustomResponse!
+}
+
+type CategoryQuery {
+  get(id: UUID!): Category
+  all: [Category!]!
+  search(name: String!): [Category!]!
+}
+
+"""Condition Type"""
+type Condition {
+  id: UUID!
+  name: String!
+  inventoryItems: [InventoryItem!]!
+  skus: [Sku!]!
+}
+
+type ConditionQuery {
+  get(id: UUID!): Condition
+  all: [Condition!]!
+  search(searchTerm: String!): [Condition!]!
+}
+
+"""Customer Input"""
+input CreateCustomerInput {
+  name: String!
+  phone: String = null
+  email: String!
+}
+
+"""Delivery Info Input"""
+input CreateDeliveryInfoInput {
+  deliveryAddress: String!
+  deliveryTime: Time!
+  deliveryDate: Date!
+}
+
+"""Input for creating a lot"""
+input CreateLotInput {
+  name: String!
+  costPrice: Float!
+  quantity: Int!
+  purchaseDate: Date!
+}
+
+"""Input for creating a marketplace"""
+input CreateMarketplaceInput {
+  name: String!
+}
+
+"""Order Input"""
+input CreateOrderInput {
+  orderNumber: String = null
+  sellerShippingCost: Float!
+  buyerShippingCost: Float!
+  customerId: UUID = null
+  deliveryMethodId: UUID!
+  marketplaceId: UUID = null
+  soldInventoryItems: [SoldInventoryItem!]!
+}
+
+"""Input for creating shipping info"""
+input CreateShippingInfoInput {
+  length: Float!
+  width: Float!
+  height: Float!
+  pounds: Int!
+  ounces: Int!
+}
+
+type CurrentUser {
+  id: UUID
+  name: String
+  email: String
+  phone: String
+  provider: String
+  currentWorkspaceId: UUID
+  currentWorkspace: Workspace
+  currentRoles: [String!]!
+  workspaces: [Workspace!]!
+}
+
+"""Customer Type"""
+type Customer {
+  id: UUID!
+  name: String!
+  phone: String
+  email: String!
+  orders(customerId: UUID!): [Order!]!
+}
+
+type CustomerCustomResponse {
+  success: Boolean!
+  message: String!
+  type: String!
+  data: Customer
+}
+
+type CustomerMutation {
+  create(createCustomerInput: CreateCustomerInput!): CustomerCustomResponse!
+  update(id: UUID!, updateCustomerInput: UpdateCustomerInput!): CustomerCustomResponse!
+  delete(id: UUID!): CustomerCustomResponse!
+}
+
+type CustomerQuery {
+  get(id: UUID!): Customer
+  all: [Customer!]!
+  search(searchTerm: String!): [Customer!]!
+}
+
+"""A date scalar"""
+scalar Date
+
+"""Delivery Info Type"""
+type DeliveryInfo {
+  deliveryAddress: String!
+  deliveryTime: Time!
+  deliveryDate: Date!
+  order: Order!
+}
+
+type DeliveryInfoCustomResponse {
+  success: Boolean!
+  message: String!
+  type: String!
+  data: DeliveryInfo
+}
+
+type DeliveryInfoMutation {
+  create(orderId: UUID!, createDeliveryInfoInput: CreateDeliveryInfoInput!): DeliveryInfoCustomResponse!
+  update(orderId: UUID!, updateDeliveryInfoInput: UpdateDeliveryInfoInput!): DeliveryInfoCustomResponse!
+  delete(orderId: UUID!): DeliveryInfoCustomResponse!
+}
+
+type DeliveryInfoQuery {
+  get(id: UUID!): DeliveryInfo
+  all: [DeliveryInfo!]!
+  search(deliveryAddress: String!): [DeliveryInfo!]!
+}
+
+"""Delivery Method Type"""
+type DeliveryMethod {
+  id: UUID!
+  name: String!
+  orders: [Order!]!
+  skus: [Sku!]!
+}
+
+type DeliveryMethodQuery {
+  get(id: UUID!): DeliveryMethod
+  all: [DeliveryMethod!]!
+  search(name: String!): [DeliveryMethod!]!
+}
+
+"""Inventory Item Type"""
+type InventoryItem {
+  id: UUID!
+  listPrice: Float!
+  costPrice: Float
+  soldPrice: Float
+  purchaseDate: Date
+  soldDate: Date
+  workspace: Workspace!
+  order: Order
+  sku: Sku!
+  inventoryItemStatus: InventoryItemStatus!
+}
+
+type InventoryItemCustomResponse {
+  success: Boolean!
+  message: String!
+  type: String!
+  data: InventoryItem
+}
+
+type InventoryItemMutation {
+  update(id: UUID!, updateInventoryItemInput: UpdateInventoryItem!): InventoryItemCustomResponse!
+  changeStatus(id: UUID!, inventoryItemStatusId: UUID!): InventoryItemCustomResponse!
+}
+
+type InventoryItemQuery {
+  get(id: UUID!): InventoryItem!
+  all: [InventoryItem!]!
+  search(searchTerm: String!): [InventoryItem!]!
+  getAllSold: [InventoryItem!]!
+  getAllPicked: [InventoryItem!]!
+  getAllFulfilled: [InventoryItem!]!
+  getAllQuantities: [QuantityBySku!]!
+}
+
+"""Inventory Item Status Type"""
+type InventoryItemStatus {
+  """The id of the inventory item status"""
+  id: UUID!
+
+  """The name of the inventory item status"""
+  name: String!
+
+  """The inventory items with this status"""
+  inventoryItems: [InventoryItem!]!
+}
+
+type InventoryItemStatusQuery {
+  get(id: UUID!): InventoryItemStatus
+  all: [InventoryItemStatus!]!
+  search(searchTerm: String!): [InventoryItemStatus!]!
+}
+
+"""Inventory Marketplace Link Type"""
+type InventoryMarketplaceLink {
+  marketplaceId: UUID!
+  marketplaceName: String!
+  isListed: Boolean!
+  sku: Sku!
+  marketplace: Marketplace!
+}
+
+type InventoryMarketplaceLinkCustomResponse {
+  success: Boolean!
+  message: String!
+  type: String!
+  data: InventoryMarketplaceLink
+}
+
+type InvitedWorkspaceQuery {
+  all: [Workspace!]!
+  get(workspaceId: UUID!): Workspace
+  search(searchTerm: String!): [Workspace!]!
+}
+
+"""Lot Type"""
+type Lot {
+  id: UUID!
+  name: String!
+
+  """Cost price of the lot in dollars"""
+  costPrice: Float!
+
+  """Quantity of the lot in the warehouse"""
+  quantityInLot: Int!
+
+  """Quantity of the lot to process"""
+  quantityToProcess: Int!
+
+  """Purchase date of the lot"""
+  purchaseDate: Date!
+  inventoryItems: [InventoryItem!]!
+  skus: [Sku!]!
+  workspace: Workspace!
+  quantityAddedToInventory: Int!
+  quantitySold: Int!
+  quantityPicked: Int!
+  quantityFulfilled: Int!
+}
+
+type LotCustomResponse {
+  success: Boolean!
+  message: String!
+  type: String!
+  data: Lot
+}
+
+type LotMutation {
+  create(createLotInput: CreateLotInput!): LotCustomResponse!
+  update(id: UUID!, updateLotInput: UpdateLotInput!): LotCustomResponse!
+  delete(id: UUID!): LotCustomResponse!
+}
+
+type LotQuery {
+  get(id: UUID!): Lot
+  all: [Lot!]!
+  search(name: String!): [Lot!]!
+}
+
+"""Marketplace Type"""
+type Marketplace {
+  id: UUID!
+  name: String!
+  orders: [Order!]!
+}
+
+type MarketplaceCustomResponse {
+  success: Boolean!
+  message: String!
+  type: String!
+  data: Marketplace
+}
+
+type MarketplaceMutation {
+  create(createMarketplaceInput: CreateMarketplaceInput!): MarketplaceCustomResponse!
+  update(id: UUID!, updateMarketplaceInput: UpdateMarketplaceInput!): MarketplaceCustomResponse!
+  delete(id: UUID!): MarketplaceCustomResponse!
+}
+
+type MarketplaceQuery {
+  get(id: UUID!, workspaceId: UUID!): Marketplace
+  all: [Marketplace!]!
+  search(name: String!): [Marketplace!]!
+}
+
+type Mutation {
+  category: CategoryMutation!
+  deliveryInfo: DeliveryInfoMutation!
+  inventoryItem: InventoryItemMutation!
+  lot: LotMutation!
+  marketplace: MarketplaceMutation!
+  shippingInfo: ShippingInfoMutation!
+  sku: SkuMutation!
+  skuMarketplaceLink: SkuMarketplaceLinkMutation!
+  user: UserMutation!
+  workspace: WorkspaceMutation!
+  customer: CustomerMutation!
+  order: OrderMutation!
+}
+
+"""Order Type"""
+type Order {
+  id: UUID!
+  orderNumber: String
+  sellerShippingCost: Float!
+  buyerShippingCost: Float!
+  customer: Customer
+  deliveryMethod: DeliveryMethod
+  deliveryInfo: DeliveryInfo
+  pickUpInfo: PickUpInfo
+  inventoryItems: [InventoryItem!]!
+  marketplace: Marketplace
+}
+
+type OrderCustomResponse {
+  success: Boolean!
+  message: String!
+  type: String!
+  data: Order
+}
+
+type OrderMutation {
+  createOrder(createOrderInput: CreateOrderInput!): OrderCustomResponse!
+  updateOrder(id: UUID!, updateOrderInput: UpdateOrderInput!): OrderCustomResponse!
+  deleteOrder(id: UUID!): OrderCustomResponse!
+}
+
+type OrderQuery {
+  get(id: UUID!): Order
+  all: [Order!]!
+  search(orderNumber: String!): [Order!]!
+}
+
+"""Pick Up Info Type"""
+type PickUpInfo {
+  contactName: String!
+  pickupTime: Time!
+  pickupDate: Date!
+  order: Order!
+}
+
+type QuantityBySku {
+  inventoryItem: InventoryItem!
+  quantity: Int!
+}
+
+type Query {
+  category: CategoryQuery!
+  condition: ConditionQuery!
+  deliveryInfo: DeliveryInfoQuery!
+  deliveryMethod: DeliveryMethodQuery!
+  inventoryItem: InventoryItemQuery!
+  inventoryItemStatus: InventoryItemStatusQuery!
+  invitedWorkspace: InvitedWorkspaceQuery!
+  lot: LotQuery!
+  marketplace: MarketplaceQuery!
+  order: OrderQuery!
+  role: RoleQuery!
+  shippingInfo: ShippingInfoQuery!
+  sku: SkuQuery!
+  skuMarketplaceLink: SkuMarketplaceLinkQuery!
+  user: UserQuery!
+  workspace: WorkspaceQuery!
+  customer: CustomerQuery!
+}
+
+"""Role Type"""
+type Role {
+  id: UUID!
+  name: String!
+}
+
+type RoleQuery {
+  """Get a list of all available roles"""
+  all: [Role!]!
+
+  """Search for roles by name"""
+  search(searchTerm: String!): [Role!]!
+}
+
+"""Shipping Info Type"""
+type ShippingInfo {
+  length: Float!
+  width: Float!
+  height: Float!
+  pounds: Int!
+  ounces: Int!
+  sku: Sku
+}
+
+type ShippingInfoCustomResponse {
+  success: Boolean!
+  message: String!
+  type: String!
+  data: ShippingInfo
+}
+
+type ShippingInfoMutation {
+  create(skuId: UUID!, createShippingInfoInput: CreateShippingInfoInput!): ShippingInfoCustomResponse!
+  update(skuId: UUID!, updateShippingInfoInput: UpdateShippingInfoInput!): ShippingInfoCustomResponse!
+  delete(skuId: UUID!): ShippingInfoCustomResponse!
+}
+
+type ShippingInfoQuery {
+  all: [ShippingInfo!]!
+  get(id: UUID!): ShippingInfo
+}
+
+type Sku {
+  id: UUID!
+  skuCode: String!
+  title: String!
+  description: String!
+  source: String
+  listPrice: Float!
+  retailPrice: Float!
+  costPrice: Float
+  quantity: Int!
+  conditionDescription: String
+  purchaseDate: Date
+  inventoryLocation: String
+  workspace: Workspace!
+  lot: Lot
+  condition: Condition
+  category: Category
+  shippingInfo: ShippingInfo
+  allInventoryItems: [InventoryItem!]
+  allInventoryItemsCount: Int!
+  inventoryItemsAvailable: [InventoryItem!]
+  inventoryItemsAvailableCount: Int!
+  inventoryItemsSold: [InventoryItem!]
+  inventoryItemsSoldCount: Int!
+  inventoryItemsPicked: [InventoryItem!]
+  inventoryItemsPickedCount: Int!
+  inventoryItemsFulfilled: [InventoryItem!]
+  inventoryItemsFulfilledCount: Int!
+  skuMarketplaceLinks: [InventoryMarketplaceLink!]
+  deliveryMethods: [DeliveryMethod!]
+}
+
+input SkuCreateInput {
+  title: String!
+  description: String!
+  retailPrice: Float!
+  costPrice: Float = null
+  listPrice: Float!
+  source: String = null
+  purchaseDate: Date = null
+  quantity: Int!
+  conditionId: UUID = null
+  conditionDescription: String = null
+  inventoryLocation: String = null
+  lotId: UUID = null
+  categoryId: UUID = null
+  marketplaceIds: [UUID!] = null
+  deliveryMethodIds: [UUID!] = null
+}
+
+type SkuCustomResponse {
+  success: Boolean!
+  message: String!
+  type: String!
+  data: Sku
+}
+
+type SkuMarketplaceLinkMutation {
+  create(skuId: UUID!, marketplaceId: UUID!): InventoryMarketplaceLinkCustomResponse!
+  update(skuId: UUID!, marketplaceId: UUID!, isListed: Boolean!): InventoryMarketplaceLinkCustomResponse!
+  delete(skuId: UUID!, marketplaceId: UUID!): InventoryMarketplaceLinkCustomResponse!
+}
+
+type SkuMarketplaceLinkQuery {
+  get(skuId: UUID!, marketplaceId: UUID!): InventoryMarketplaceLink
+  all(skuId: UUID!): [InventoryMarketplaceLink!]!
+  getIsListed(skuId: UUID!): [InventoryMarketplaceLink!]!
+  getNotListed(skuId: UUID!): [InventoryMarketplaceLink!]!
+  search(skuId: UUID!, searchTerm: String!): [InventoryMarketplaceLink!]!
+}
+
+type SkuMutation {
+  create(createSkuInput: SkuCreateInput!): SkuCustomResponse!
+  update(id: UUID!, updateSkuInput: SkuUpdateInput!): SkuCustomResponse!
+  delete(id: UUID!): SkuCustomResponse!
+}
+
+type SkuQuery {
+  get(id: UUID!): Sku
+  all: [Sku!]!
+  search(searchTerm: String!): [Sku!]!
+}
+
+input SkuUpdateInput {
+  title: String = null
+  description: String = null
+  retailPrice: Float = null
+  costPrice: Float = null
+  listPrice: Float = null
+  source: String = null
+  quantity: Int = null
+  purchaseDate: Date = null
+  conditionId: UUID = null
+  conditionDescription: String = null
+  inventoryLocation: String = null
+  lotId: UUID = null
+  categoryId: UUID = null
+  marketplaceIds: [UUID!] = null
+  deliveryMethodIds: [UUID!] = null
+}
+
+"""Sold Inventory Item"""
+input SoldInventoryItem {
+  inventoryItemId: UUID!
+  soldPrice: Float!
+  soldDate: Date!
+}
+
+"""A time scalar"""
+scalar Time
+
+scalar UUID
+
+"""Customer Input"""
+input UpdateCustomerInput {
+  name: String = null
+  phone: String = null
+  email: String = null
+}
+
+"""Delivery Info Input"""
+input UpdateDeliveryInfoInput {
+  deliveryAddress: String = null
+  deliveryTime: Time = null
+  deliveryDate: Date = null
+}
+
+"""Input for updating an inventory item"""
+input UpdateInventoryItem {
+  soldPrice: Float = null
+  soldDate: Date = null
+  orderId: UUID = null
+  inventoryItemStatusId: UUID = null
+}
+
+"""Input for updating a lot"""
+input UpdateLotInput {
+  name: String = null
+  costPrice: Float = null
+  quantity: Int = null
+  purchaseDate: Date = null
+}
+
+"""Input for updating a marketplace"""
+input UpdateMarketplaceInput {
+  name: String = null
+}
+
+"""Order Input"""
+input UpdateOrderInput {
+  orderNumber: String = null
+  sellerShippingCost: Float = null
+  buyerShippingCost: Float = null
+  customerId: UUID = null
+  deliveryMethodId: UUID = null
+  marketplaceId: UUID = null
+  soldInventoryItems: [SoldInventoryItem!] = null
+}
+
+"""Input for updating shipping info"""
+input UpdateShippingInfoInput {
+  length: Float = null
+  width: Float = null
+  height: Float = null
+  pounds: Int = null
+  ounces: Int = null
+}
+
+"""User Type"""
+type User {
+  id: UUID!
+  name: String!
+  email: String!
+  phone: String!
+  provider: String!
+  workspace: Workspace
+  roles: [String!]!
+}
+
+"""User Invitation Type"""
+type UserInvitation {
+  id: UUID!
+  workspaceId: UUID!
+  inviteEmail: String!
+}
+
+type UserInvitationCustomResponse {
+  success: Boolean!
+  message: String!
+  type: String!
+  data: UserInvitation
+}
+
+type UserMutation {
+  inviteUserToWorkspace(userEmail: String!): UserInvitationCustomResponse!
+  removeUserFromWorkspace(userEmail: String!): UserInvitationCustomResponse!
+  revokeUserInviteToWorkspace(userEmail: String!): UserInvitationCustomResponse!
+}
+
+type UserQuery {
+  get(id: UUID!): User
+  all(name: String, email: String, orderBy: String = "asc", orderField: String = "name"): [User!]!
+  current: CurrentUser!
+}
+
+type Workspace {
+  id: UUID!
+  name: String!
+  users: [User!]!
+  categories: [Category!]!
+}
+
+type WorkspaceCustomResponse {
+  success: Boolean!
+  message: String!
+  type: String!
+  data: Workspace
+}
+
+type WorkspaceMutation {
+  create(name: String!): WorkspaceCustomResponse!
+  select(workspaceId: UUID!): WorkspaceCustomResponse!
+  deselect: WorkspaceCustomResponse!
+  disconnect(workspaceId: UUID!): WorkspaceCustomResponse!
+  reconnect(workspaceId: UUID!): WorkspaceCustomResponse!
+  connectToInvited(workspaceId: UUID!): WorkspaceCustomResponse!
+}
+
+type WorkspaceQuery {
+  get(workspaceId: UUID!): Workspace
+  all(order: String = "asc"): [Workspace!]!
+  search(searchTerm: String!, order: String = "asc"): [Workspace!]!
+}

@@ -21,8 +21,75 @@ import { ScrollView } from "react-native";
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
 import { Divider } from "@/components/ui/divider";
+import { gql, useMutation, useQuery } from "@apollo/client";
+
+
+const GetItemsSold = gql`
+query GetItemsSold {
+  inventoryItem {
+    getAllSold {
+      id
+      sku {
+        title
+        inventoryLocation
+        skuCode
+      }
+    }
+  }
+}
+`
+
+const RestockItem = gql`
+mutation RestockItem($id: UUID!, $inventoryItemStatusId: UUID!, $orderId: UUID, $soldDate: Date, $soldPrice: Float) {
+  inventoryItem {
+    update(
+      id: $id
+      updateInventoryItemInput: {
+      inventoryItemStatusId: $inventoryItemStatusId,
+      orderId: $orderId,
+      soldDate: $soldDate,
+      soldPrice: $soldPrice
+      }
+    ) {
+      message
+      success
+      type
+    }
+  }
+}
+`
+
+const PickItem = gql`
+mutation PickItem($id: UUID!, $inventoryItemStatusId: UUID!) {
+  inventoryItem {
+    changeStatus(id: $id, inventoryItemStatusId: $inventoryItemStatusId) {
+      message
+      success
+      type
+    }
+  }
+}
+`
+
+const GetInventoryItemStatusIds = gql`
+query GetInventoryItemStatusIds {
+  inventoryItemStatus {
+    all {
+      id
+      name
+    }
+  }
+}
+`
+
 
 export default function PickList() {
+  const { called: calledGetItemsSold, loading: loadingGetItemsSold, error: errorGetItemsSold, data: dataGetItemsSold, refetch: refetchGetItemsSold } = useQuery(GetItemsSold)
+  const { called: calledGetInventoryItemStatusIds, loading: loadingGetInventoryItemStatusIds, error: errorGetInventoryItemStatusIds, data: dataGetInventoryItemStatusIds, refetch: refetchGetInventoryStatusIds } = useQuery(GetInventoryItemStatusIds)
+  const [restockItem, { called: calledRestockItem, loading: loadingRestockItem, error: errorRestockItem, data: dataRestockItem }] = useMutation(RestockItem)
+  const [pickItem, { called: calledPickItem, loading: loadingPickItem, error: errorPickItem, data: dataPickItem }] = useMutation(PickItem)
+
+
   const toast = useToast();
   const [toastId, setToastId] = React.useState("0");
 
@@ -98,30 +165,14 @@ export default function PickList() {
 
   useFocusEffect(
     useCallback(() => {
+      refetchGetItemsSold();
       return () => {
         toast.closeAll();
       };
     }, []),
   );
 
-  const items = [
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-  ];
+
 
   return (
     <View className="flex gap-2 p-4">
@@ -135,32 +186,60 @@ export default function PickList() {
       </View>
       <ScrollView>
         <View className="mt-2 gap-3">
-          {items.map((item, i) => {
+          {dataGetItemsSold?.inventoryItem.getAllSold.map((item, i) => {
             return (
               <Card className="px-2 py-1" key={i}>
-                <Heading>Some Inventory Item</Heading>
+                <Heading>{item.sku.title}</Heading>
                 <View className="flex flex-row mt-2 gap-8">
                   <View className="flex">
                     <Text>Inventory Location</Text>
                     <Divider />
-                    <Text className="font-semibold">G2B2</Text>
+                    <Text className="font-semibold">{item.sku.inventoryLocation}</Text>
                   </View>
                   <View className="flex">
                     <Text>Item SKU</Text>
                     <Divider />
-                    <Text className="font-semibold">A14</Text>
+                    <Text className="font-semibold">{item.sku.skuCode}</Text>
                   </View>
-                  <View className="flex">
+                  {/* <View className="flex">
                     <Text>Quantity</Text>
                     <Divider />
                     <Text className="font-semibold">3</Text>
-                  </View>
+                  </View> */}
                 </View>
                 <View className="flex flex-row gap-1 mt-2">
-                  <Button className="flex-1" onPress={handleRestockToast}>
+                  <Button className="flex-1" onPress={() => {
+                    const restocked = dataGetInventoryItemStatusIds?.inventoryItemStatus.all.find(item => item.name === "ADDED TO INVENTORY");
+                    console.log(restocked?.id)
+                    console.log(item?.id)
+                    restockItem({
+                      variables: {
+                        id: item.id,
+                        inventoryItemStatusId: restocked?.id,
+                        orderId: null,
+                        soldDate: null,
+                        soldPrice: null,
+                      },
+                      onCompleted: () => {
+                        handleRestockToast();
+                        refetchGetItemsSold();
+                      }
+                    })
+                  }}>
                     <ButtonText>Restock Item</ButtonText>
                   </Button>
-                  <Button className="flex-1" onPress={handlePickedToast}>
+                  <Button className="flex-1" onPress={() => {
+                    pickItem({
+                      variables: {
+                        id: item.id,
+                        inventoryItemStatusId: dataGetInventoryItemStatusIds?.inventoryItemStatus.all.find(item => item.name === "PICKED")?.id
+                      },
+                      onCompleted: () => {
+                        refetchGetItemsSold();
+                        handlePickedToast()
+                      }
+                    })
+                  }}>
                     <ButtonText>Picked</ButtonText>
                   </Button>
                 </View>
@@ -168,7 +247,7 @@ export default function PickList() {
             );
           })}
         </View>
-      </ScrollView>
-    </View>
+      </ScrollView >
+    </View >
   );
 }
